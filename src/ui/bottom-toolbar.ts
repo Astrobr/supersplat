@@ -7,6 +7,7 @@ import { i18n } from './localization';
 import { MenuPanel } from './menu-panel';
 import measureSvg from './svg/measure.svg';
 import orientSvg from './svg/orient.svg';
+import planeSplatSvg from './svg/plane-splat.svg';
 import redoSvg from './svg/redo.svg';
 import boxSvg from './svg/select-box.svg';
 import brushSvg from './svg/select-brush.svg';
@@ -314,6 +315,24 @@ class BottomToolbar extends Container {
             class: 'bottom-toolbar-tool'
         });
 
+        const planeSplat = new Button({
+            id: 'bottom-toolbar-plane-splat',
+            class: ['bottom-toolbar-tool', 'bottom-toolbar-group']
+        });
+
+        const planeSplatMenu = new MenuPanel(
+            (['xy', 'xz', 'yz'] as const).map((plane) => ({
+                text: () => i18n.t(`plane-splat.${plane}`),
+                onSelect: () => {
+                    events.fire('planeSplat.setPlane', plane);
+                    if (events.invoke('tool.active') !== 'planeSplat') {
+                        events.fire('tool.planeSplat');
+                    }
+                }
+            }))
+        );
+        this.append(planeSplatMenu);
+
         const coordSpace = new Button({
             id: 'bottom-toolbar-coord-space',
             class: 'bottom-toolbar-toggle',
@@ -335,6 +354,7 @@ class BottomToolbar extends Container {
         box.dom.appendChild(createSvg(boxSvg));
         measure.dom.appendChild(createSvg(measureSvg));
         orient.dom.appendChild(createSvg(orientSvg));
+        planeSplat.dom.appendChild(createSvg(planeSplatSvg));
         // crop.dom.appendChild(createSvg(cropSvg));
 
         this.append(undo);
@@ -359,6 +379,7 @@ class BottomToolbar extends Container {
         this.append(new Element({ class: 'bottom-toolbar-separator' }));
         this.append(measure);
         this.append(orient);
+        this.append(planeSplat);
         this.append(coordSpace);
         this.append(origin);
 
@@ -382,6 +403,26 @@ class BottomToolbar extends Container {
         scale.dom.addEventListener('click', () => events.fire('tool.scale'));
         measure.dom.addEventListener('click', () => events.fire('tool.measure'));
         orient.dom.addEventListener('click', () => events.fire('tool.orient'));
+        planeSplat.dom.addEventListener('click', () => {
+            if (planeSplatMenu.hidden) {
+                planeSplatMenu.position(planeSplat.dom, 'top', 8);
+            }
+            planeSplatMenu.hidden = !planeSplatMenu.hidden;
+        });
+        window.addEventListener(
+            'pointerdown',
+            (event: PointerEvent) => {
+                const target = event.target as Node;
+                if (
+                    !planeSplatMenu.hidden &&
+                    !planeSplatMenu.dom.contains(target) &&
+                    !planeSplat.dom.contains(target)
+                ) {
+                    planeSplatMenu.hidden = true;
+                }
+            },
+            true
+        );
         coordSpace.dom.addEventListener('click', () => events.fire('tool.toggleCoordSpace'));
         origin.dom.addEventListener('click', (e: MouseEvent) => {
             if (events.invoke('tool.active') === 'orient') {
@@ -443,6 +484,7 @@ class BottomToolbar extends Container {
             scale.class[toolName === 'scale' ? 'add' : 'remove']('active');
             measure.class[toolName === 'measure' ? 'add' : 'remove']('active');
             orient.class[toolName === 'orient' ? 'add' : 'remove']('active');
+            planeSplat.class[toolName === 'planeSplat' ? 'add' : 'remove']('active');
         });
 
         events.on('tool.coordSpace', (space: 'local' | 'world') => {
@@ -467,6 +509,7 @@ class BottomToolbar extends Container {
         tooltips.register(scale, tooltip('tooltip.bottom-toolbar.scale', 'tool.scaleShortcut'));
         tooltips.register(measure, tooltip('tooltip.bottom-toolbar.measure'));
         tooltips.register(orient, tooltip('tooltip.bottom-toolbar.orient'));
+        tooltips.register(planeSplat, tooltip('tooltip.bottom-toolbar.plane-splat'));
         tooltips.register(coordSpace, tooltip('tooltip.bottom-toolbar.local-space', 'tool.toggleCoordSpace'));
         tooltips.register(origin, () =>
             i18n.t(

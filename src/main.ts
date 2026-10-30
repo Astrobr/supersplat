@@ -28,6 +28,7 @@ import { LassoSelection } from './tools/lasso-selection';
 import { MeasureTool } from './tools/measure-tool';
 import { MoveTool } from './tools/move-tool';
 import { OrientTool } from './tools/orient-tool';
+import { PlaneSplatTool } from './tools/plane-splat-tool';
 import { PolygonSelection } from './tools/polygon-selection';
 import { RectSelection } from './tools/rect-selection';
 import { RotateTool } from './tools/rotate-tool';
@@ -282,6 +283,10 @@ const main = async () => {
             editorUI.canvasContainer,
             editorUI.annotationContainer.dom
         )
+    );
+    toolManager.register(
+        'planeSplat',
+        new PlaneSplatTool(events, scene, editorUI.toolsContainer.dom, editorUI.canvasContainer)
     );
 
     registerBoundDimensionsOverlay(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom);

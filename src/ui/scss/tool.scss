@@ -38,6 +38,41 @@
         }
     }
 
+    &#plane-splat-svg {
+        >rect {
+            fill: rgba(255, 0, 255, 0.18);
+            stroke: #ff4dff;
+            stroke-width: 1.5;
+            stroke-dasharray: 6, 4;
+            pointer-events: none;
+        }
+
+        &.plane-splat-preview >rect {
+            fill: none;
+        }
+
+        >circle.plane-splat-handle {
+            fill: #ff4dff;
+            stroke: white;
+            stroke-width: 1.5;
+            pointer-events: all;
+
+            &.hidden {
+                display: none;
+            }
+        }
+
+        >circle.plane-splat-handle-nw,
+        >circle.plane-splat-handle-se {
+            cursor: nwse-resize;
+        }
+
+        >circle.plane-splat-handle-ne,
+        >circle.plane-splat-handle-sw {
+            cursor: nesw-resize;
+        }
+    }
+
     &#lasso-select-svg {
         >polygon {
             fill: none;
