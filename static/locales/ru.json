@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "Соло выбранного",
     "tooltip.scene.import": "Импортировать сцену",
     "tooltip.scene.new": "Новая сцена",
+    "tooltip.scene.layer-color": "Цвет слоя",
+    "tooltip.scene.use-background-color": "Установить цвет слоя как фон",
     "tooltip.status-bar.timeline": "Переключить панель временной шкалы",
     "tooltip.status-bar.splat-data": "Переключить панель данных сплатов",
     "tooltip.splat-data.on-screen-only": "Учитывать только сплаты, видимые в поле зрения камеры. Сплаты вне экрана исключаются из гистограммы.",

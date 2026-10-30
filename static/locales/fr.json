@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "Solo sélectionné",
     "tooltip.scene.import": "Importer une scène",
     "tooltip.scene.new": "Nouvelle scène",
+    "tooltip.scene.layer-color": "Couleur du calque",
+    "tooltip.scene.use-background-color": "Définir la couleur du calque sur l’arrière-plan",
     "tooltip.status-bar.timeline": "Afficher/Masquer le panneau Chronologie",
     "tooltip.status-bar.splat-data": "Afficher/Masquer le panneau Données Splat",
     "tooltip.splat-data.on-screen-only": "Ne compter que les splats visibles dans la caméra. Les splats hors écran sont exclus de l'histogramme.",

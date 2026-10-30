@@ -1,18 +1,59 @@
-import { Container, Label, Element as PcuiElement, TextInput } from '@playcanvas/pcui';
+import { ColorPicker, Container, Label, Element as PcuiElement, TextInput } from '@playcanvas/pcui';
+import { Color } from 'playcanvas';
 
-import { SplatRenameOp } from '../edit-ops';
+import { createGradeTerms } from '../color-grade';
+import type { GradeTerms } from '../color-grade';
+import { SplatsColorOp, SplatRenameOp } from '../edit-ops';
 import type { Element } from '../element';
 import { ElementType } from '../element';
 import type { Events } from '../events';
 import type { Splat } from '../splat';
 
+import { i18n } from './localization';
 import deleteSvg from './svg/delete.svg';
 import hiddenSvg from './svg/hidden.svg';
 import shownSvg from './svg/shown.svg';
+import type { Tooltips } from './tooltips';
 
 const createSvg = (svgString: string) => {
     const decodedStr = decodeURIComponent(svgString.substring('data:image/svg+xml,'.length));
     return new DOMParser().parseFromString(decodedStr, 'image/svg+xml').documentElement;
+};
+
+// A zero matrix plus an RGB offset replaces DC and every SH coefficient with a
+// constant colour. Stored in the regular per-gaussian colour palette, this is
+// rendered by the editor and baked by every model exporter.
+const solidGrade = (color: Color): GradeTerms => {
+    const grade = createGradeTerms();
+    grade.m.fill(0);
+    grade.offset.r = color.r;
+    grade.offset.g = color.g;
+    grade.offset.b = color.b;
+    return grade;
+};
+
+// Recover the swatch when every gaussian currently carries the same solid
+// colour. Original or mixed-colour layers return null and use PCUI's mixed-value
+// presentation instead of pretending that they are white.
+const solidLayerColor = (splat: Splat): Color | null => {
+    const { instances, colorPalette } = splat;
+    if (instances.count === 0) return null;
+
+    const grade = createGradeTerms();
+    const seen = new Set<number>();
+    let result: Color = null;
+    for (let i = 0; i < instances.count; ++i) {
+        const index = instances.colorIndex(i);
+        if (seen.has(index)) continue;
+        seen.add(index);
+        colorPalette.getEntry(index, grade);
+        if (grade.m.some((value) => value !== 0)) return null;
+
+        const color = new Color(grade.offset.r, grade.offset.g, grade.offset.b);
+        if (result && !result.equals(color)) return null;
+        result = color;
+    }
+    return result;
 };
 
 class SplatItem extends Container {
@@ -22,9 +63,13 @@ class SplatItem extends Container {
     setSelected: (value: boolean) => void;
     getVisible: () => boolean;
     setVisible: (value: boolean) => void;
+    setLayerColor: (value: Color | null) => void;
+    setBackgroundColor: (value: Color) => void;
+    colorPicker: ColorPicker;
+    backgroundColor: PcuiElement;
     destroy: () => void;
 
-    constructor(name: string, edit: TextInput, args = {}) {
+    constructor(name: string, edit: TextInput, layerColor: Color | null, backgroundColor: Color, args = {}) {
         args = {
             ...args,
             class: ['splat-item', 'visible']
@@ -53,10 +98,29 @@ class SplatItem extends Container {
             class: 'splat-item-delete'
         });
 
+        const colorPicker = new ColorPicker({
+            class: 'splat-item-color',
+            channels: 3,
+            value: layerColor ? [layerColor.r, layerColor.g, layerColor.b] : [1, 1, 1]
+        });
+
+        // This swatch is also a button: it always displays the current viewport
+        // background and copies that colour to this layer when clicked.
+        const useBackgroundColor = new PcuiElement({
+            class: 'splat-item-background-color'
+        });
+        useBackgroundColor.dom.setAttribute('role', 'button');
+        useBackgroundColor.dom.setAttribute('tabindex', '0');
+
         this.append(text);
+        this.append(colorPicker);
+        this.append(useBackgroundColor);
         this.append(visible);
         this.append(invisible);
         this.append(remove);
+
+        this.colorPicker = colorPicker;
+        this.backgroundColor = useBackgroundColor;
 
         this.getName = () => {
             return text.value;
@@ -100,6 +164,28 @@ class SplatItem extends Container {
             }
         };
 
+        let suppressColorChange = false;
+        let colorDirty = false;
+
+        this.setLayerColor = (value: Color | null) => {
+            suppressColorChange = true;
+            if (value) {
+                colorPicker.value = [value.r, value.g, value.b];
+            } else {
+                colorPicker.value = [1, 1, 1];
+                colorPicker.class.add('pcui-multiple-values');
+            }
+            suppressColorChange = false;
+            colorDirty = false;
+        };
+        this.setLayerColor(layerColor);
+
+        this.setBackgroundColor = (value: Color) => {
+            const channel = (v: number) => Math.round(Math.max(0, Math.min(1, v)) * 255);
+            useBackgroundColor.dom.style.backgroundColor = `rgb(${channel(value.r)}, ${channel(value.g)}, ${channel(value.b)})`;
+        };
+        this.setBackgroundColor(backgroundColor);
+
         const toggleVisible = (event: MouseEvent) => {
             event.stopPropagation();
             this.visible = !this.visible;
@@ -108,6 +194,32 @@ class SplatItem extends Container {
         const handleRemove = (event: MouseEvent) => {
             event.stopPropagation();
             this.emit('removeClicked', this);
+        };
+
+        const applyBackgroundColor = (event: Event) => {
+            event.stopPropagation();
+            this.emit('useBackgroundColor', this);
+        };
+
+        const handleBackgroundKey = (event: KeyboardEvent) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                applyBackgroundColor(event);
+            }
+        };
+
+        const handleColorChange = () => {
+            if (!suppressColorChange) {
+                colorDirty = true;
+            }
+        };
+
+        const handleColorEnd = () => {
+            if (colorDirty) {
+                colorDirty = false;
+                const value = colorPicker.value;
+                this.emit('color', new Color(value[0], value[1], value[2]));
+            }
         };
 
         // rename on double click
@@ -133,11 +245,19 @@ class SplatItem extends Container {
         visible.dom.addEventListener('click', toggleVisible);
         invisible.dom.addEventListener('click', toggleVisible);
         remove.dom.addEventListener('click', handleRemove);
+        useBackgroundColor.dom.addEventListener('click', applyBackgroundColor);
+        useBackgroundColor.dom.addEventListener('keydown', handleBackgroundKey);
+        colorPicker.on('change', handleColorChange);
+        colorPicker.on('picker:color:end', handleColorEnd);
 
         this.destroy = () => {
             visible.dom.removeEventListener('click', toggleVisible);
             invisible.dom.removeEventListener('click', toggleVisible);
             remove.dom.removeEventListener('click', handleRemove);
+            useBackgroundColor.dom.removeEventListener('click', applyBackgroundColor);
+            useBackgroundColor.dom.removeEventListener('keydown', handleBackgroundKey);
+            colorPicker.unbind('change', handleColorChange);
+            colorPicker.unbind('picker:color:end', handleColorEnd);
         };
     }
 
@@ -167,7 +287,7 @@ class SplatItem extends Container {
 }
 
 class SplatList extends Container {
-    constructor(events: Events, args = {}) {
+    constructor(events: Events, tooltips: Tooltips, args = {}) {
         args = {
             ...args,
             class: 'splat-list'
@@ -187,9 +307,17 @@ class SplatList extends Container {
         events.on('scene.elementAdded', (element: Element) => {
             if (element.type === ElementType.splat) {
                 const splat = element as Splat;
-                const item = new SplatItem(splat.name, edit);
+                const item = new SplatItem(
+                    splat.name,
+                    edit,
+                    solidLayerColor(splat),
+                    events.invoke('bgClr') ?? Color.BLACK
+                );
                 this.append(item);
                 items.set(splat, item);
+
+                tooltips.register(item.colorPicker, () => i18n.t('tooltip.scene.layer-color'), 'top');
+                tooltips.register(item.backgroundColor, () => i18n.t('tooltip.scene.use-background-color'), 'top');
 
                 if (soloMode) {
                     savedVisibility.set(splat, splat.visible);
@@ -209,6 +337,23 @@ class SplatList extends Container {
                 });
                 item.on('rename', (value: string) => {
                     events.fire('edit.add', new SplatRenameOp(splat, value));
+                });
+                item.on('color', (value: Color) => {
+                    events.fire(
+                        'edit.add',
+                        new SplatsColorOp({ splat, grade: solidGrade(value), scope: 'layer', includeLocked: true })
+                    );
+                });
+                item.on('useBackgroundColor', () => {
+                    events.fire(
+                        'edit.add',
+                        new SplatsColorOp({
+                            splat,
+                            grade: solidGrade(events.invoke('bgClr')),
+                            scope: 'layer',
+                            includeLocked: true
+                        })
+                    );
                 });
             }
         });
@@ -270,6 +415,14 @@ class SplatList extends Container {
             if (item) {
                 item.visible = splat.visible;
             }
+        });
+
+        events.on('splat.colorsChanged', (splat: Splat) => {
+            items.get(splat)?.setLayerColor(solidLayerColor(splat));
+        });
+
+        events.on('bgClr', (color: Color) => {
+            items.forEach((item) => item.setBackgroundColor(color));
         });
 
         this.on('click', (item: SplatItem) => {

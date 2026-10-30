@@ -384,11 +384,18 @@ class SplatsColorOp {
     private oldIndices: number[];
     private paletteMap: Map<number, number>;
     private scope: 'selection' | 'layer';
+    private includeLocked: boolean;
 
-    constructor(options: { splat: Splat; grade: GradeTerms | null; scope?: 'selection' | 'layer' }) {
+    constructor(options: {
+        splat: Splat;
+        grade: GradeTerms | null;
+        scope?: 'selection' | 'layer';
+        includeLocked?: boolean;
+    }) {
         this.splat = options.splat;
         this.grade = options.grade;
         this.scope = options.scope ?? (options.splat.instances.numSelected === 0 ? 'layer' : 'selection');
+        this.includeLocked = options.includeLocked ?? false;
 
         const seen = new Set<number>();
         this.forEachTarget((i) => seen.add(options.splat.instances.colorIndex(i)));
@@ -396,17 +403,18 @@ class SplatsColorOp {
     }
 
     // The colour panel targets the selection, and an empty selection means the
-    // whole layer. Locked gaussians are never a target, which matches
-    // selectedRanges(). Re-derived rather than captured because the edit history
-    // is strict LIFO: any later selection change has already been undone by the
-    // time this op's undo runs, so the target set is the same both ways.
+    // whole layer. Selection edits skip locked gaussians, matching
+    // selectedRanges(); explicit layer-wide property edits can opt into changing
+    // locked gaussians too. Re-derived rather than captured because the edit
+    // history is strict LIFO: any later selection change has already been undone
+    // by the time this op's undo runs, so the target set is the same both ways.
     private forEachTarget(fn: (i: number) => void) {
         const { instances } = this.splat;
         const { flags } = instances;
         const all = this.scope === 'layer';
         for (let i = 0; i < instances.count; ++i) {
             const f = flags[i];
-            if ((f & State.locked) === 0 && (all || (f & State.selected) !== 0)) {
+            if ((this.includeLocked || (f & State.locked) === 0) && (all || (f & State.selected) !== 0)) {
                 fn(i);
             }
         }

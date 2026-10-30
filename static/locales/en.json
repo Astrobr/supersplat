@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "Solo Selected",
     "tooltip.scene.import": "Import Scene",
     "tooltip.scene.new": "New Scene",
+    "tooltip.scene.layer-color": "Layer Color",
+    "tooltip.scene.use-background-color": "Set Layer Color to Background",
     "tooltip.status-bar.timeline": "Toggle Timeline Panel",
     "tooltip.status-bar.splat-data": "Toggle Splat Data Panel",
     "tooltip.splat-data.on-screen-only": "Only count splats visible in the camera's view. Off-screen splats are excluded from the histogram.",

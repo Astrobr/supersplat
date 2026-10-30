@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "独显所选",
     "tooltip.scene.import": "导入场景",
     "tooltip.scene.new": "新建场景",
+    "tooltip.scene.layer-color": "图层颜色",
+    "tooltip.scene.use-background-color": "将图层颜色设为背景颜色",
     "tooltip.status-bar.timeline": "切换时间线面板",
     "tooltip.status-bar.splat-data": "切换高斯点数据面板",
     "tooltip.splat-data.on-screen-only": "仅统计相机视野内可见的高斯点。屏幕外的高斯点将从直方图中排除。",

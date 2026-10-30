@@ -91,7 +91,7 @@ class ScenePanel extends Container {
         tooltips.register(sceneImport, () => i18n.t('tooltip.scene.import'), 'top');
         tooltips.register(sceneNew, () => i18n.t('tooltip.scene.new'), 'top');
 
-        const splatList = new SplatList(events);
+        const splatList = new SplatList(events, tooltips);
 
         const splatListContainer = new Container({
             class: 'splat-list-container'

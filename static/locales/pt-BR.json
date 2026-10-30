@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "Solo selecionado",
     "tooltip.scene.import": "Importar Cena",
     "tooltip.scene.new": "Nova Cena",
+    "tooltip.scene.layer-color": "Cor da camada",
+    "tooltip.scene.use-background-color": "Usar cor de fundo na camada",
     "tooltip.status-bar.timeline": "Alternar painel de Linha do Tempo",
     "tooltip.status-bar.splat-data": "Alternar painel de Dados de Splat",
     "tooltip.splat-data.on-screen-only": "Contar apenas os splats visíveis pela câmera. Splats fora da tela são excluídos do histograma.",

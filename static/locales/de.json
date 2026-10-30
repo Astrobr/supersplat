@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "Auswahl solo anzeigen",
     "tooltip.scene.import": "Szene importieren",
     "tooltip.scene.new": "Neue Szene",
+    "tooltip.scene.layer-color": "Ebenenfarbe",
+    "tooltip.scene.use-background-color": "Ebenenfarbe auf Hintergrundfarbe setzen",
     "tooltip.status-bar.timeline": "Zeitleisten-Panel umschalten",
     "tooltip.status-bar.splat-data": "Splat-Daten-Panel umschalten",
     "tooltip.splat-data.on-screen-only": "Nur Splats zählen, die in der Kameraansicht sichtbar sind. Splats außerhalb des Bildschirms werden aus dem Histogramm ausgeschlossen.",

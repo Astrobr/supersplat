@@ -392,6 +392,8 @@
     "tooltip.scene.solo": "選択をソロ表示",
     "tooltip.scene.import": "シーンをインポート",
     "tooltip.scene.new": "新規シーンを作成",
+    "tooltip.scene.layer-color": "レイヤーの色",
+    "tooltip.scene.use-background-color": "レイヤーの色を背景色に設定",
     "tooltip.status-bar.timeline": "タイムラインパネルの切り替え",
     "tooltip.status-bar.splat-data": "スプラットデータパネルの切り替え",
     "tooltip.splat-data.on-screen-only": "カメラに映っているスプラットのみをヒストグラムに含めます。画面外のスプラットは除外されます。",
