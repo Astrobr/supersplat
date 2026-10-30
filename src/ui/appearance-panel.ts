@@ -11,11 +11,56 @@ import colorsSvg from './svg/colors.svg';
 import resetSvg from './svg/reset.svg';
 import ringsSvg from './svg/rings.svg';
 import selectAllSvg from './svg/select-all.svg';
+import selectEyedropperSvg from './svg/select-eyedropper.svg';
 import type { Tooltips } from './tooltips';
 
 const createSvg = (svgString: string) => {
     const decodedStr = decodeURIComponent(svgString.substring('data:image/svg+xml,'.length));
     return new DOMParser().parseFromString(decodedStr, 'image/svg+xml').documentElement;
+};
+
+type EyeDropperConstructor = new () => {
+    open: () => Promise<{ sRGBHex: string }>;
+};
+
+const getEyeDropper = () => {
+    return (window as typeof window & { EyeDropper?: EyeDropperConstructor }).EyeDropper;
+};
+
+const colorFromScreenValue = (value: string) => {
+    const hex = /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec(value.trim());
+    if (hex) {
+        const packed = parseInt(hex[1], 16);
+        return new Color(((packed >> 16) & 0xff) / 255, ((packed >> 8) & 0xff) / 255, (packed & 0xff) / 255);
+    }
+
+    const functional = /^rgba?\((.*)\)$/i.exec(value.trim());
+    if (!functional) {
+        return null;
+    }
+
+    // Accept both legacy comma syntax and modern space/slash syntax. The
+    // eyedropper's alpha is intentionally ignored: the editor background is
+    // opaque and only uses the sampled RGB channels.
+    const channels = functional[1]
+        .split('/')[0]
+        .trim()
+        .split(/[\s,]+/)
+        .filter(Boolean);
+    if (channels.length < 3) {
+        return null;
+    }
+
+    const rgb = channels.slice(0, 3).map((channel) => {
+        const percentage = channel.endsWith('%');
+        const parsed = Number.parseFloat(channel);
+        if (!Number.isFinite(parsed)) {
+            return NaN;
+        }
+        return Math.max(0, Math.min(1, percentage ? parsed / 100 : parsed / 255));
+    });
+
+    return rgb.every(Number.isFinite) ? new Color(rgb[0], rgb[1], rgb[2]) : null;
 };
 
 class AppearancePanel extends Container {
@@ -314,6 +359,16 @@ class AppearancePanel extends Container {
             value: [0, 0, 0]
         });
 
+        const bgClrEyedropper = new Button({
+            class: 'settings-panel-row-eyedropper',
+            enabled: !!getEyeDropper()
+        });
+        bgClrEyedropper.dom.appendChild(createSvg(selectEyedropperSvg));
+        i18n.onChange(
+            () => bgClrEyedropper.dom.setAttribute('aria-label', i18n.t('panel.settings.pick-background-color')),
+            bgClrEyedropper
+        );
+
         const selectedClrPicker = new ColorPicker({
             class: 'settings-panel-row-picker',
             channels: 4,
@@ -353,6 +408,7 @@ class AppearancePanel extends Container {
         });
 
         colorPickers.append(bgClrPicker);
+        colorPickers.append(bgClrEyedropper);
         colorPickers.append(selectedClrPicker);
         colorPickers.append(unselectedClrPicker);
         colorPickers.append(lockedClrPicker);
@@ -505,6 +561,37 @@ class AppearancePanel extends Container {
             events.fire('setBgClr', new Color(value[0], value[1], value[2]));
         });
 
+        bgClrEyedropper.on('click', async () => {
+            const EyeDropper = getEyeDropper();
+            if (!EyeDropper) {
+                return;
+            }
+
+            // open() must be called synchronously from the click handler while
+            // transient user activation is still available.
+            const selection = new EyeDropper().open();
+            bgClrEyedropper.enabled = false;
+
+            let screenColorValue: string;
+            try {
+                screenColorValue = (await selection).sRGBHex;
+            } catch (error) {
+                if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                    console.error('Unable to pick a background colour from the screen', error);
+                }
+                return;
+            } finally {
+                bgClrEyedropper.enabled = true;
+            }
+
+            const color = colorFromScreenValue(screenColorValue);
+            if (!color) {
+                console.error('The screen colour picker returned an unsupported value', screenColorValue);
+                return;
+            }
+            events.fire('setBgClr', color);
+        });
+
         selectedClrPicker.on('change', (value: number[]) => {
             events.fire('setSelectedClr', new Color(value[0], value[1], value[2], value[3]));
         });
@@ -518,6 +605,7 @@ class AppearancePanel extends Container {
         });
 
         tooltips.register(bgClrPicker, () => i18n.t('panel.settings.background-color'), 'left');
+        tooltips.register(bgClrEyedropper, () => i18n.t('panel.settings.pick-background-color'), 'top');
         tooltips.register(selectedClrPicker, () => i18n.t('panel.settings.selected-color'), 'top');
         tooltips.register(unselectedClrPicker, () => i18n.t('panel.settings.unselected-color'), 'top');
         tooltips.register(lockedClrPicker, () => i18n.t('panel.settings.locked-color'), 'top');

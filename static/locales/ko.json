@@ -67,6 +67,7 @@
     "panel.settings.language.auto": "자동",
     "panel.settings.colors": "색상",
     "panel.settings.background-color": "배경 색상",
+    "panel.settings.pick-background-color": "화면에서 배경색 추출",
     "panel.settings.selected-color": "선택된 색상",
     "panel.settings.unselected-color": "선택되지 않은 색상",
     "panel.settings.locked-color": "잠긴 색상",

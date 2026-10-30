@@ -67,6 +67,7 @@
     "panel.settings.language.auto": "Автоматически",
     "panel.settings.colors": "Цвета",
     "panel.settings.background-color": "Цвет фона",
+    "panel.settings.pick-background-color": "Выбрать цвет фона с экрана",
     "panel.settings.selected-color": "Цвет выделенного",
     "panel.settings.unselected-color": "Цвет невыделенного",
     "panel.settings.locked-color": "Цвет заблокированного",

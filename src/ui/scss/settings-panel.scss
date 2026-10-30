@@ -115,6 +115,28 @@
                 padding: 0px;
                 height: 24px;
             }
+
+            & > .settings-panel-row-eyedropper {
+                width: 24px;
+                height: 24px;
+                margin: 0;
+                padding: 3px;
+                border: 0;
+                border-radius: 3px;
+                background-color: $bcg-dark;
+                color: $clr-default;
+
+                svg {
+                    display: block;
+                    width: 18px;
+                    height: 18px;
+                }
+
+                &:hover:not(.pcui-disabled) {
+                    background-color: $clr-hilight;
+                    color: $clr-active;
+                }
+            }
         }
 
         & > .settings-panel-row-button {

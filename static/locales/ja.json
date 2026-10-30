@@ -67,6 +67,7 @@
     "panel.settings.language.auto": "自動",
     "panel.settings.colors": "色",
     "panel.settings.background-color": "背景色",
+    "panel.settings.pick-background-color": "画面から背景色を抽出",
     "panel.settings.selected-color": "選択色",
     "panel.settings.unselected-color": "非選択色",
     "panel.settings.locked-color": "ロック色",

@@ -67,6 +67,7 @@
     "panel.settings.language.auto": "自动",
     "panel.settings.colors": "颜色",
     "panel.settings.background-color": "背景颜色",
+    "panel.settings.pick-background-color": "从屏幕拾取背景颜色",
     "panel.settings.selected-color": "选中颜色",
     "panel.settings.unselected-color": "未选中颜色",
     "panel.settings.locked-color": "锁定颜色",

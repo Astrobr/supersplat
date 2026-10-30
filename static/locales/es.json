@@ -67,6 +67,7 @@
     "panel.settings.language.auto": "Automático",
     "panel.settings.colors": "Colores",
     "panel.settings.background-color": "Color de fondo",
+    "panel.settings.pick-background-color": "Tomar el color de fondo de la pantalla",
     "panel.settings.selected-color": "Color seleccionado",
     "panel.settings.unselected-color": "Color no seleccionado",
     "panel.settings.locked-color": "Color bloqueado",
