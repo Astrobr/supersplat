@@ -144,8 +144,9 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             const docData = await docSource.read().readAll();
             docSource.close();
             const document = JSON.parse(new TextDecoder().decode(docData));
+            const documentVersion = document.version ?? 0;
 
-            if ((document.version ?? 0) >= 1) {
+            if (documentVersion >= 1) {
                 // v1: the static tier is stored once per resource, and each layer
                 // brings its own instance list and palettes. Layers sharing a
                 // resource share it here too, so a duplicated layer costs nothing
@@ -208,7 +209,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             events.invoke('docDeserialize.timeline', document.timeline);
             events.invoke('docDeserialize.poseSets', document.poseSets, document.camera?.fov);
             events.invoke('docDeserialize.view', document.view);
-            scene.camera.docDeserialize(document.camera);
+            scene.camera.docDeserialize(document.camera, documentVersion < 2);
 
             // refresh the pivot to reflect the loaded transform
             const currentSelection = events.invoke('selection');
@@ -315,7 +316,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             });
 
             const document = {
-                version: 1,
+                version: 2,
                 camera: scene.camera.docSerialize(),
                 view: events.invoke('docSerialize.view'),
                 poseSets: events.invoke('docSerialize.poseSets'),

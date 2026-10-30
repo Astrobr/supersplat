@@ -311,7 +311,7 @@ const registerPreferences = (events: Events, config: SceneConfig, urlArgs: objec
         {
             key: 'grid.planes',
             setCommand: 'grid.setPlanes',
-            getDefault: () => ['xz'],
+            getDefault: () => ['xy'],
             validate: isPlanes,
             group: 'overlays'
         },

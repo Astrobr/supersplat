@@ -199,7 +199,7 @@ class OrientTool {
             return true;
         };
 
-        // calculate the rotation aligning +y with the plane normal (on the
+        // calculate the rotation aligning +z with the plane normal (on the
         // camera-facing side, matching the align convention) and +x with the
         // first edge. requires a valid calcPlane result in p0/p1, n and c.
         const calcPlaneRotation = (result: Quat) => {
@@ -207,8 +207,8 @@ class OrientTool {
                 n.mulScalar(-1);
             }
             e0.normalize();
-            e1.cross(e0, n);
-            mat.set([e0.x, e0.y, e0.z, 0, n.x, n.y, n.z, 0, e1.x, e1.y, e1.z, 0, 0, 0, 0, 1]);
+            e1.cross(n, e0);
+            mat.set([e0.x, e0.y, e0.z, 0, e1.x, e1.y, e1.z, 0, n.x, n.y, n.z, 0, 0, 0, 0, 1]);
             result.setFromMat4(mat);
         };
 
@@ -335,8 +335,8 @@ class OrientTool {
                 n.copy(snapped);
             }
 
-            // the positive axis of the first enabled grid plane (xz when none is)
-            const gridPlane: GridPlane = (events.invoke('grid.planes') as GridPlane[])[0] ?? 'xz';
+            // the positive axis of the first enabled grid plane (xy when none is)
+            const gridPlane: GridPlane = (events.invoke('grid.planes') as GridPlane[])[0] ?? 'xy';
             const a = gridPlane === 'xy' ? Vec3.BACK : gridPlane === 'yz' ? Vec3.RIGHT : Vec3.UP;
 
             // shortest arc rotation from the plane normal to the grid axis

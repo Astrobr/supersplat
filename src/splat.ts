@@ -77,11 +77,16 @@ class Splat extends Element {
 
     // user-defined local frame (relative to the data frame), set from the
     // orient tool's picked plane: origin at the first picked point, rotation
-    // aligning +y with the plane normal. the transform gizmos and panel use
+    // aligning +z with the plane normal. the transform gizmos and panel use
     // it as the model's local coordinate space; the gaussian data is
     // unaffected. the defaults reproduce the entity's own frame
     localFrameOrigin = new Vec3();
     localFrame = new Quat();
+
+    // Coordinate-space rotation applied when the source was first loaded. It is
+    // kept separate from the editable entity transform so export can remove
+    // only the conversion that was actually applied.
+    readonly loadRotation = new Quat();
 
     // `instances` creates a layer over a subset of an existing layer's instances,
     // sharing the asset's static data (duplicate / separate). Ownership of the
@@ -95,6 +100,7 @@ class Splat extends Element {
         // an animated sequence can replace its data without losing the user's
         // transform (see replaceData).
         this.entity = new Entity('splatEntity');
+        this.loadRotation.copy(rotation);
 
         this.selectionBoundStorage = new BoundingBox();
 
@@ -292,8 +298,9 @@ class Splat extends Element {
 
         // the entity transform is inherited rather than baked into the data, which
         // is what lets the static rows be shared
-        const layer = new Splat(this.asset, this.entity.getLocalRotation(), instances);
+        const layer = new Splat(this.asset, this.loadRotation, instances);
         layer.entity.setLocalPosition(this.entity.getLocalPosition());
+        layer.entity.setLocalRotation(this.entity.getLocalRotation());
         layer.entity.setLocalScale(this.entity.getLocalScale());
         layer.localFrameOrigin.copy(this.localFrameOrigin);
         layer.localFrame.copy(this.localFrame);

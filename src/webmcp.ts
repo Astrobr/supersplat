@@ -213,7 +213,7 @@ const createWebMCPTools = (editor: EditorAPI): Tool[] => {
     };
     add(
         'get_scene',
-        'Inspect the shared editor: document, layers, active layer, camera, viewport, display settings and global undo/redo. World axes are Y-up, right-handed; units come from the file. Rotations in results are quaternions [x,y,z,w]. Screen coordinates are normalized within viewport.rect, origin top-left. Layer IDs last for this session. total counts live instances; deleted counts removed instances.',
+        'Inspect the shared editor: document, layers, active layer, camera, viewport, display settings and global undo/redo. World axes are Z-up, right-handed; units come from the file. Rotations in results are quaternions [x,y,z,w]. Screen coordinates are normalized within viewport.rect, origin top-left. Layer IDs last for this session. total counts live instances; deleted counts removed instances.',
         {
             offset: integer('First layer to return.', 0),
             limit: integer('Maximum layers to return; default 32.', 1, 128)
@@ -539,7 +539,7 @@ const createWebMCPTools = (editor: EditorAPI): Tool[] => {
     );
     add(
         'set_camera',
-        'Set an instant camera pose using position+target, or a named view/orbit parameters. Y-up; azimuth 0 views from +Z, 90 from +X; positive elevation is above target. Orbit distance 1 frames the scene. Returns the resulting pose and viewToken.',
+        'Set an instant camera pose using position+target, or a named view/orbit parameters. Z-up; azimuth 0 views from -Y, 90 from +X; positive elevation is above target. Orbit distance 1 frames the scene. Returns the resulting pose and viewToken.',
         {
             position: vector('World position; requires target.'),
             target: vector('World look-at point; requires position.'),

@@ -1,4 +1,4 @@
-import type { BoundingBox, Quat } from 'playcanvas';
+import type { BoundingBox } from 'playcanvas';
 import {
     math,
     ADDRESS_CLAMP_TO_EDGE,
@@ -23,6 +23,7 @@ import {
     Color,
     Entity,
     Mat4,
+    Quat,
     Ray,
     RenderPass,
     RenderPassForward,
@@ -51,6 +52,8 @@ const vec = new Vec3();
 const vecb = new Vec3();
 const vec4 = new Vec4();
 const invViewProj = new Mat4();
+const cameraRotation = new Mat4();
+const cameraOrientation = new Quat();
 
 // snapshot of everything a pick or screen-space selection depends on, taken
 // at gesture time so work that runs from the command queue later sees the
@@ -95,15 +98,51 @@ class Camera extends Element {
     static calcForwardVec(result: Vec3, azim: number, elev: number) {
         const ex = elev * math.DEG_TO_RAD;
         const ey = azim * math.DEG_TO_RAD;
-        const s1 = Math.sin(-ex);
-        const c1 = Math.cos(-ex);
-        const s2 = Math.sin(-ey);
-        const c2 = Math.cos(-ey);
-        result.set(-c1 * s2, s1, c1 * c2);
+        const sinElev = Math.sin(ex);
+        const cosElev = Math.cos(ex);
+        const sinAzim = Math.sin(ey);
+        const cosAzim = Math.cos(ey);
+
+        // Z-up orbit: azimuth zero is the front view from -Y, and negative
+        // elevation moves the camera above the target towards +Z.
+        return result.set(sinAzim * cosElev, -cosAzim * cosElev, -sinElev);
+    }
+
+    /** Calculate a roll-free Z-up camera rotation for the orbit angles. */
+    static calcRotation(result: Quat, azim: number, elev: number) {
+        const ex = elev * math.DEG_TO_RAD;
+        const ey = azim * math.DEG_TO_RAD;
+        const sinElev = Math.sin(ex);
+        const cosElev = Math.cos(ex);
+        const sinAzim = Math.sin(ey);
+        const cosAzim = Math.cos(ey);
+
+        // Matrix columns are camera-local right, up and backward in world
+        // space. Defining them analytically also keeps top/bottom views stable,
+        // where a generic look-at with +Z up becomes singular.
+        cameraRotation.set([
+            cosAzim,
+            sinAzim,
+            0,
+            0,
+            sinAzim * sinElev,
+            -cosAzim * sinElev,
+            cosElev,
+            0,
+            sinAzim * cosElev,
+            -cosAzim * cosElev,
+            -sinElev,
+            0,
+            0,
+            0,
+            0,
+            1
+        ]);
+        return result.setFromMat4(cameraRotation);
     }
 
     controller: PointerController;
-    focalPointTween = new TweenValue({ x: 0, y: 0.5, z: 0 });
+    focalPointTween = new TweenValue({ x: 0, y: 0, z: 0.5 });
     azimElevTween = new TweenValue({ azim: 30, elev: -15 });
     distanceTween = new TweenValue({ distance: 1 });
 
@@ -326,8 +365,8 @@ class Camera extends Element {
     setPose(position: Vec3, target: Vec3, dampingFactorFactor = 1) {
         vec.sub2(target, position);
         const l = vec.length();
-        const azim = Math.atan2(-vec.x / l, -vec.z / l) * math.RAD_TO_DEG;
-        const elev = Math.asin(vec.y / l) * math.RAD_TO_DEG;
+        const azim = Math.atan2(-vec.x / l, vec.y / l) * math.RAD_TO_DEG;
+        const elev = Math.asin(vec.z / l) * math.RAD_TO_DEG;
         this.setFocalPoint(target, dampingFactorFactor);
         this.setAzimElev(azim, elev, dampingFactorFactor);
         this.setDistance((l / this.sceneRadius) * this.fovFactor, dampingFactorFactor);
@@ -740,7 +779,7 @@ class Camera extends Element {
             this.far = far;
         } else {
             this.mainCamera.setLocalPosition(cameraPosition);
-            this.mainCamera.setLocalEulerAngles(azimElev.elev, azimElev.azim, 0);
+            this.mainCamera.setLocalRotation(Camera.calcRotation(cameraOrientation, azimElev.azim, azimElev.elev));
 
             this.fitClippingPlanes(this.mainCamera.getLocalPosition(), this.mainCamera.forward);
 
@@ -1115,9 +1154,22 @@ class Camera extends Element {
         };
     }
 
-    docDeserialize(settings: ReturnType<Camera['docSerialize']>) {
+    docDeserialize(settings: ReturnType<Camera['docSerialize']>, legacyYUp = false) {
+        let { azim, elev } = settings;
+        if (legacyYUp) {
+            // Preserve the viewing direction stored by pre-Z-up documents.
+            // Their orbit offset was (sin(a)cos(e), -sin(e), cos(a)cos(e)).
+            const ex = elev * math.DEG_TO_RAD;
+            const ey = azim * math.DEG_TO_RAD;
+            const x = Math.sin(ey) * Math.cos(ex);
+            const y = -Math.sin(ex);
+            const z = Math.cos(ey) * Math.cos(ex);
+            azim = Math.atan2(x, -y) * math.RAD_TO_DEG;
+            elev = -Math.asin(Math.max(-1, Math.min(1, z))) * math.RAD_TO_DEG;
+        }
+
         this.setFocalPoint(new Vec3(settings.focalPoint), 0);
-        this.setAzimElev(settings.azim, settings.elev, 0);
+        this.setAzimElev(azim, elev, 0);
         this.setDistance(settings.distance, 0);
         this.fov = settings.fov;
         this.tonemapping = settings.tonemapping;

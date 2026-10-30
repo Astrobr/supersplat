@@ -435,10 +435,10 @@ class PointerController {
 
                 moveVec.set(0, 0, 0);
 
-                // Forward/backward along horizontal forward direction (fixed Y)
+                // Forward/backward along the Z-up horizontal plane
                 if (forward) {
                     const zAxis = worldTransform.getZ();
-                    zAxis.y = 0;
+                    zAxis.z = 0;
                     zAxis.normalize();
                     moveVec.add(zAxis.mulScalar(-forward * factor));
                 }
@@ -446,14 +446,14 @@ class PointerController {
                 // Strafe left/right (horizontal)
                 if (strafe) {
                     const xAxis = worldTransform.getX();
-                    xAxis.y = 0;
+                    xAxis.z = 0;
                     xAxis.normalize();
                     moveVec.add(xAxis.mulScalar(strafe * factor));
                 }
 
                 // Up/down in world space
                 if (vertical) {
-                    moveVec.y += vertical * factor;
+                    moveVec.z += vertical * factor;
                 }
 
                 // Move the focal point (camera follows due to orbit calculation)

@@ -136,10 +136,10 @@ class CameraPoseGizmos extends Element {
             tmpForward.sub2(target, position).normalize();
 
             // right direction (handle degenerate case when looking straight up/down)
-            if (Math.abs(tmpForward.y) > 0.999) {
-                tmpRight.cross(tmpForward, Vec3.BACK).normalize();
-            } else {
+            if (Math.abs(tmpForward.z) > 0.999) {
                 tmpRight.cross(tmpForward, Vec3.UP).normalize();
+            } else {
+                tmpRight.cross(tmpForward, Vec3.BACK).normalize();
             }
 
             // up direction

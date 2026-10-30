@@ -9,10 +9,9 @@ import type {
     ChunkSourceMetadata,
     Options,
     ReadFileSystem,
-    ReadRequest,
-    Transform
+    ReadRequest
 } from '@playcanvas/splat-transform';
-import { ZipReadFileSystem, getInputFormat, readFile, selectLod } from '@playcanvas/splat-transform';
+import { Transform, ZipReadFileSystem, getInputFormat, readFile, selectLod } from '@playcanvas/splat-transform';
 
 type LoadResult = {
     source: ChunkSource;
@@ -216,7 +215,13 @@ const loadSplatSource = async (
         const isCompressedPly = lowerFilename.endsWith('.compressed.ply');
         const reorder = inputFormat !== 'sog' && !isCompressedPly && !skipReorder;
 
-        return { source, transform: source.meta.transform, reorder };
+        // Keep PLY data in its authored coordinate system. splat-transform tags
+        // PLY sources with a 180-degree Z rotation for PlayCanvas convention,
+        // but exposing that as the layer transform makes every imported PLY
+        // start with a surprising non-zero rotation.
+        const transform = inputFormat === 'ply' ? new Transform() : source.meta.transform;
+
+        return { source, transform, reorder };
     } catch (err) {
         await source.close();
         throw err;

@@ -12,6 +12,7 @@ import {
 } from 'mediabunny';
 import { Color, path, Quat, Vec3 } from 'playcanvas';
 
+import { Camera } from './camera';
 import { ElementType } from './element';
 import { EquirectRenderer } from './equirect-renderer';
 import type { Events } from './events';
@@ -217,7 +218,7 @@ const registerRenderEvents = (scene: Scene, events: Events) => {
                 const camPos = new Vec3().copy(scene.camera.position);
                 const qCapture = new Quat();
                 if (levelHorizon ?? true) {
-                    qCapture.setFromEulerAngles(0, scene.camera.azim, 0);
+                    Camera.calcRotation(qCapture, scene.camera.azim, 0);
                 } else {
                     qCapture.copy(scene.camera.mainCamera.getRotation());
                 }
@@ -641,7 +642,7 @@ const registerRenderEvents = (scene: Scene, events: Events) => {
                     // the camera yaw, otherwise yaw and pitch
                     camPos.copy(scene.camera.position);
                     if (levelHorizon ?? true) {
-                        qCapture.setFromEulerAngles(0, scene.camera.azim, 0);
+                        Camera.calcRotation(qCapture, scene.camera.azim, 0);
                     } else {
                         qCapture.copy(scene.camera.mainCamera.getRotation());
                     }

@@ -91,9 +91,13 @@ class SplatTransformCache {
             if (!transform.mat) {
                 const mat = new Mat4();
 
-                // we must undo the transform we apply at load time to output data
+                // Non-PLY formats retain the previous PlayCanvas-to-PLY export
+                // conversion. PLY now loads in authored coordinates, so its
+                // identity load rotation must not be undone on export.
                 if (!keepWorldTransform) {
-                    mat.setFromEulerAngles(0, 0, -180);
+                    if (!splat.loadRotation.equals(Quat.IDENTITY)) {
+                        mat.setFromEulerAngles(0, 0, -180);
+                    }
                     mat.mul2(mat, splat.entity.getWorldTransform());
                 }
 
@@ -333,7 +337,7 @@ type ExportEntry = {
  * It is the streaming analog of the old extractDataTable/DataTable path:
  * gaussians are filtered
  * (selection/opacity/invalid) and transformed (world + palette + SH
- * rotation + colour tint + PLY-space flip) on demand via SingleSplat, one chunk
+ * rotation + colour tint + any applied load-space conversion) on demand via SingleSplat, one chunk
  * at a time. The output is in PLY space, so the source is tagged Transform.PLY
  * (identity) and the writers' bakeTransform is a no-op.
  */
@@ -674,10 +678,10 @@ const writeSplatFile = async (
  * Write a resource's static gaussian data, restricted to `rows` (in-memory row
  * indices, ascending) and in that order. Nothing is baked - no entity transform,
  * no palette, no grade - because a .ssproj stores the static tier untouched and
- * keeps every per-layer edit in a side blob. The saved entity rotation already
- * carries the import transform the reader reported (LCC reports one; the other
- * formats report `Transform.PLY`), so the rows are written verbatim: the source
- * is relabelled as PLY space and the writer's bakeTransform becomes a no-op.
+ * keeps every per-layer edit in a side blob. The saved entity rotation carries
+ * any import transform that was applied (PLY now deliberately applies none), so
+ * the rows are written verbatim: the source is relabelled as PLY space and the
+ * writer's bakeTransform becomes a no-op.
  *
  * The source is NOT closed here - it belongs to the resource and outlives the save.
  */

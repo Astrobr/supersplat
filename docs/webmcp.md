@@ -37,7 +37,7 @@ Edits run through `window.editor`, the same typed API and command queue used by 
 
 Camera, display settings, layer visibility and active-layer changes are session settings and do not create undo entries. Renaming a layer does. `undo` and `redo` affect the shared history, not a separate agent history.
 
-Coordinates use the editor's right-handed, Y-up world, in the model's units. Transform rotations are Euler degrees; inspected layer rotations are quaternions `[x,y,z,w]`. Rotation and scaling use the target bounds centre unless an explicit world-space `center` is supplied. Layer transforms include hidden splats; selection transforms do not.
+Coordinates use the editor's right-handed, Z-up world, in the model's units. Transform rotations are Euler degrees; inspected layer rotations are quaternions `[x,y,z,w]`. Rotation and scaling use the target bounds centre unless an explicit world-space `center` is supplied. Layer transforms include hidden splats; selection transforms do not.
 
 ### Preview and crop
 

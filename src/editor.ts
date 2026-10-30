@@ -1,6 +1,7 @@
 import type { Mat4 } from 'playcanvas';
 import { Color, Quat, Texture, Vec3 } from 'playcanvas';
 
+import { Camera } from './camera';
 import type { CameraFrame } from './camera';
 import type { GradeParams } from './color-grade';
 import type { CommandContext } from './command-queue';
@@ -400,12 +401,8 @@ const registerEditorEvents = (events: Events, editHistory: EditHistory, scene: S
 
     events.on('camera.reset', () => {
         const { initialAzim, initialElev, initialZoom } = scene.config.controls;
-        const x = Math.sin((initialAzim * Math.PI) / 180) * Math.cos((initialElev * Math.PI) / 180);
-        const y = -Math.sin((initialElev * Math.PI) / 180);
-        const z = Math.cos((initialAzim * Math.PI) / 180) * Math.cos((initialElev * Math.PI) / 180);
-        const zoom = initialZoom;
-
-        scene.camera.setPose(new Vec3(x * zoom, y * zoom, z * zoom), new Vec3(0, 0, 0));
+        const position = Camera.calcForwardVec(new Vec3(), initialAzim, initialElev).mulScalar(initialZoom);
+        scene.camera.setPose(position, Vec3.ZERO);
     });
 
     // handle camera align events
@@ -415,19 +412,19 @@ const registerEditorEvents = (events: Events, editHistory: EditHistory, scene: S
                 scene.camera.setAzimElev(90, 0);
                 break;
             case 'py':
-                scene.camera.setAzimElev(0, -90);
+                scene.camera.setAzimElev(180, 0);
                 break;
             case 'pz':
-                scene.camera.setAzimElev(0, 0);
+                scene.camera.setAzimElev(0, -90);
                 break;
             case 'nx':
                 scene.camera.setAzimElev(270, 0);
                 break;
             case 'ny':
-                scene.camera.setAzimElev(0, 90);
+                scene.camera.setAzimElev(0, 0);
                 break;
             case 'nz':
-                scene.camera.setAzimElev(180, 0);
+                scene.camera.setAzimElev(0, 90);
                 break;
         }
 

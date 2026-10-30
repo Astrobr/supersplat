@@ -41,7 +41,7 @@ class InfiniteGrid extends Element {
     visible = true;
     // the planes drawn, any combination. Planes the camera views edge-on
     // produce no intersections and simply don't show
-    planes: GridPlane[] = ['xz'];
+    planes: GridPlane[] = ['xy'];
 
     constructor() {
         super(ElementType.debug);

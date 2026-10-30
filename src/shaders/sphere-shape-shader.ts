@@ -54,7 +54,7 @@ fn writeDepth(alpha: f32) -> bool {
 
 fn strips(localPosition: vec3f) -> bool {
     let direction = normalize(localPosition);
-    let azimuthElevation = vec2f(atan2(direction.z, direction.x), asin(direction.y)) * 180.0 / 3.14159;
+    let azimuthElevation = vec2f(atan2(direction.y, direction.x), asin(direction.z)) * 180.0 / 3.14159;
     let spacing = 180.0 / (2.0 * 3.14159 * uniform.sphere.w);
     return fract(azimuthElevation.x / spacing) < 0.03 || fract(azimuthElevation.y / spacing) < 0.03;
 }
