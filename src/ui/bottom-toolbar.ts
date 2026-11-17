@@ -5,6 +5,7 @@ import type { ShortcutManager } from '../shortcut-manager';
 
 import { i18n } from './localization';
 import { MenuPanel } from './menu-panel';
+import boxSplatSvg from './svg/box-splat.svg';
 import measureSvg from './svg/measure.svg';
 import orientSvg from './svg/orient.svg';
 import planeSplatSvg from './svg/plane-splat.svg';
@@ -319,6 +320,10 @@ class BottomToolbar extends Container {
             id: 'bottom-toolbar-plane-splat',
             class: ['bottom-toolbar-tool', 'bottom-toolbar-group']
         });
+        const boxSplat = new Button({
+            id: 'bottom-toolbar-box-splat',
+            class: 'bottom-toolbar-tool'
+        });
 
         const planeSplatMenu = new MenuPanel(
             (['xy', 'xz', 'yz'] as const).map((plane) => ({
@@ -355,6 +360,7 @@ class BottomToolbar extends Container {
         measure.dom.appendChild(createSvg(measureSvg));
         orient.dom.appendChild(createSvg(orientSvg));
         planeSplat.dom.appendChild(createSvg(planeSplatSvg));
+        boxSplat.dom.appendChild(createSvg(boxSplatSvg));
         // crop.dom.appendChild(createSvg(cropSvg));
 
         this.append(undo);
@@ -380,6 +386,7 @@ class BottomToolbar extends Container {
         this.append(measure);
         this.append(orient);
         this.append(planeSplat);
+        this.append(boxSplat);
         this.append(coordSpace);
         this.append(origin);
 
@@ -409,6 +416,7 @@ class BottomToolbar extends Container {
             }
             planeSplatMenu.hidden = !planeSplatMenu.hidden;
         });
+        boxSplat.dom.addEventListener('click', () => events.fire('tool.boxSplat'));
         window.addEventListener(
             'pointerdown',
             (event: PointerEvent) => {
@@ -485,6 +493,7 @@ class BottomToolbar extends Container {
             measure.class[toolName === 'measure' ? 'add' : 'remove']('active');
             orient.class[toolName === 'orient' ? 'add' : 'remove']('active');
             planeSplat.class[toolName === 'planeSplat' ? 'add' : 'remove']('active');
+            boxSplat.class[toolName === 'boxSplat' ? 'add' : 'remove']('active');
         });
 
         events.on('tool.coordSpace', (space: 'local' | 'world') => {
@@ -510,6 +519,7 @@ class BottomToolbar extends Container {
         tooltips.register(measure, tooltip('tooltip.bottom-toolbar.measure'));
         tooltips.register(orient, tooltip('tooltip.bottom-toolbar.orient'));
         tooltips.register(planeSplat, tooltip('tooltip.bottom-toolbar.plane-splat'));
+        tooltips.register(boxSplat, tooltip('tooltip.bottom-toolbar.box-splat'));
         tooltips.register(coordSpace, tooltip('tooltip.bottom-toolbar.local-space', 'tool.toggleCoordSpace'));
         tooltips.register(origin, () =>
             i18n.t(

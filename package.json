@@ -24,7 +24,7 @@
         "lint": "eslint src global.d.ts eslint.config.mjs prettier.config.mjs rollup.config.mjs",
         "lint:fix": "eslint src global.d.ts eslint.config.mjs prettier.config.mjs rollup.config.mjs --fix",
         "lint:locales": "node scripts/check-locales.mjs",
-        "test": "tsc -p test/tsconfig.json && node --import ./test/register.mjs test/queue-ordering.mjs"
+        "test": "tsc -p test/tsconfig.json && node --import ./test/register.mjs test/queue-ordering.mjs && node --import ./test/register.mjs test/box-splat-geometry.mjs"
     },
     "engines": {
         "node": ">=20.19.0"
